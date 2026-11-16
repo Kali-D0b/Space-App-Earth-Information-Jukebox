@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Warming Song: an Earth Information Jukebox · NASA GISTEMP 1880–2023</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-mood="dawn">
+<a class="skip" href="#narrator">Skip to the narrator button</a>
+<main>
+  <header class="top">
+    <div>
+      <div class="kicker">An Earth Information Jukebox · NASA temperature data, 1880–2023</div>
+      <h1>The Warming Song</h1>
+    </div>
+    <button id="narrator" class="pill narrator" aria-pressed="false" title="Narrator (V): reads everything aloud">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13v-1a8 8 0 0 1 16 0v1"/><rect x="3" y="13" width="4" height="7" rx="2"/><rect x="17" y="13" width="4" height="7" rx="2"/></svg>
+      <span>Narrator: off</span>
+    </button>
+  </header>
+
+  <section class="book" aria-label="The story">
+    <div class="stats" aria-hidden="true">
+      <div class="stat yearbox"><span class="lbl">Year</span><b id="year">1880</b></div>
+      <div class="stat"><span class="lbl">Global</span><b id="temp">−0.17 °C</b></div>
+      <div class="stat"><span class="lbl">Arctic</span><b id="arctic">−0.82 °C</b></div>
+      <div class="stat"><span class="lbl">CO₂</span><b id="co2">291 ppm</b></div>
+      <div class="stat meters">
+        <span class="lbl">The map's temperature is playing</span>
+        <div class="m"><span>Birds</span><i><b id="gBirds"></b></i></div>
+        <div class="m"><span>Pollution</span><i><b id="gPoll"></b></i></div>
+        <div class="m"><span>Pitch</span><i><b id="gPitch"></b></i></div>
+      </div>
+    </div>
+
+    <div class="viewport">
+      <canvas id="cosmos" width="1600" height="880" role="img"
+        aria-label="NASA's global temperature map, coloured by real temperatures for each band of latitude, floating in a storybook night sky. Little birds and butterflies drift across it early on; smog takes over as it warms."></canvas>
+      <div id="startOverlay">
+        <div class="cover">
+          <p class="once">Once upon a planet…</p>
+          <p class="sub">Fly through 144 years of NASA temperature data and listen to Earth's song change.</p>
+          <div class="cover-buttons">
+            <button id="start" class="pill primary">▶&nbsp; Begin the story</button>
+            <button id="startNarrated" class="pill">🎧&nbsp; Begin with narrator</button>
+          </div>
+          <p class="hint">Headphones recommended · Space play/pause · N next chapter · M mute · V narrator</p>
+        </div>
+      </div>
+      <div id="epilogue" class="epilogue" hidden>
+        <div class="ep-card" role="dialog" aria-labelledby="epTitle">
+          <div class="kicker">The end… for now</div>
+          <h2 id="epTitle">The birds have gone quiet.</h2>
+          <p id="epText"></p>
+          <ul class="ep-facts">
+            <li>🌡️ The planet is about <b>1.1 °C</b> warmer than 150 years ago.</li>
+            <li>🌊 Seas have risen about <b>8 inches</b> since 1880.</li>
+            <li>🧊 Arctic summers could be <b>ice-free</b> before 2050.</li>
+          </ul>
+          <p class="ep-call">We need to act now.</p>
+          <p class="ep-sub">Every bit of warming we stop still matters. The next chapter is ours to write.</p>
+          <p class="ep-src">Facts: NASA Science · all sources are listed at the bottom of the page</p>
+          <div class="cover-buttons">
+            <button id="replay" class="pill primary">⟲&nbsp; Hear the song again</button>
+            <button id="closeEp" class="pill">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story" aria-live="polite">
+      <article class="card" id="card">
+        <div class="card-year" id="cardYear"></div>
+        <h2 id="cardTitle"></h2>
+        <p id="cardText"></p>
+        <p class="fact" id="cardFact"></p>
+      </article>
+      <div class="toast" id="toast"></div>
+    </div>
+
+    <canvas id="ribbon" width="1600" height="60" aria-label="Timeline: one stripe per year from 1880 to 2023. Click to travel to a year." role="img"></canvas>
+
+    <div class="dock" role="group" aria-label="Playback">
+      <button id="play" class="round" aria-pressed="false" aria-label="Play" title="Play / pause (Space)">
+        <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+      </button>
+      <button id="restart" class="icon" aria-label="Start again" title="Start again">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 3-6.2"/><path d="M4 4v5h5"/></svg>
+      </button>
+      <button id="next" class="icon" aria-label="Next chapter" title="Next chapter (N)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l9 7-9 7zM16 5h3v14h-3z"/></svg>
+      </button>
+      <input id="scrub" type="range" min="1880" max="2023.99" step="0.01" value="1880" aria-label="Year">
+      <div class="seg" role="group" aria-label="Speed">
+        <button data-speed="0.5">½×</button><button data-speed="1" aria-pressed="true">1×</button><button data-speed="2">2×</button>
+      </div>
+      <button id="mute" class="icon" aria-pressed="false" aria-label="Mute" title="Mute (M)">
+        <svg class="i-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>
+        <svg class="i-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>
+      </button>
+    </div>
+    <div class="chips" role="group" aria-label="Sound layers">
+      <button class="chip layer" data-layer="birds" aria-pressed="true">🐦 Birds</button>
+      <button class="chip layer" data-layer="nature" aria-pressed="true">🌿 Nature</button>
+      <button class="chip layer" data-layer="pollution" aria-pressed="true">🏭 Pollution</button>
+      <button class="chip layer" data-layer="music" aria-pressed="true">🎵 Music</button>
+      <button class="chip layer" data-layer="time" aria-pressed="true">💨 Whoosh</button>
+    </div>
+  </section>
+
+  <details class="note">
+    <summary>How the map becomes sound</summary>
+    <ul>
+      <li><b>The map</b> is coloured like NASA's SVS 5207 temperature map: blue is cooler than 1951–1980, white is normal, and red is warmer. Each band of latitude uses NASA GISTEMP's real zonal average for that year, so you can watch the Arctic heat up fastest. With the Python backend running, NASA's own SVS 5207 frames are shown instead.</li>
+      <li><b>One number drives the sound:</b> the map's global temperature. Cooler means birdsong, crickets, frogs, waves and a gentle music-box tune. As it warms, the birds fade away completely, pollution surges (traffic, engines, horns, sirens, jackhammers, smog), the wind turns gusty, and the music climbs higher and gets tense.</li>
+      <li><b>Narrator:</b> turn it on (top right, or press <kbd>V</kbd>) to hear the story, the year, the temperature and what's changing, read aloud. The other sounds get quieter while it speaks.</li>
+      <li>Keyboard: <kbd>Space</kbd> play/pause · <kbd>←</kbd> <kbd>→</kbd> a year · <kbd>N</kbd> next chapter · <kbd>M</kbd> mute · <kbd>V</kbd> narrator.</li>
+    </ul>
+  </details>
+  <p id="src" class="src"></p>
+  <section class="sources" aria-labelledby="srcTitle">
+    <h2 id="srcTitle">Sources</h2>
+    <h3>Map and data</h3>
+    <ul>
+      <li><b>Map colours and the year-by-year temperature map:</b> <a href="https://svs.gsfc.nasa.gov/5207/" target="_blank" rel="noopener">NASA Scientific Visualization Studio, global temperature anomaly visualization SVS 5207</a></li>
+      <li><b>Global and latitude-band temperatures, 1880–2023:</b> <a href="https://data.giss.nasa.gov/gistemp/" target="_blank" rel="noopener">NASA GISS Surface Temperature Analysis (GISTEMP v4)</a></li>
+      <li><b>CO₂ numbers, 1959 onward:</b> <a href="https://gml.noaa.gov/ccgg/trends/" target="_blank" rel="noopener">NOAA Global Monitoring Laboratory, “Trends in Atmospheric Carbon Dioxide”</a></li>
+      <li><b>Coastlines and borders on the map:</b> <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth (public domain)</a></li>
+    </ul>
+    <h3>Facts in the story, year by year</h3>
+    <ul>
+      <li><b>1880: NASA's record starts in 1880:</b> <a href="https://data.giss.nasa.gov/gistemp/" target="_blank" rel="noopener">NASA GISTEMP</a></li>
+      <li><b>1896: Arrhenius's warming estimate:</b> <a href="https://doi.org/10.1080/14786449608620846" target="_blank" rel="noopener">Svante Arrhenius, “On the Influence of Carbonic Acid in the Air upon the Temperature of the Ground”, Philosophical Magazine (1896)</a></li>
+      <li><b>1908: the Model T arrives:</b> <a href="https://www.thehenryford.org/collections/explore/articles/fords-model-t" target="_blank" rel="noopener">The Henry Ford, “Ford's Model T: A Car for the Great Multitude”</a></li>
+      <li><b>1908: about 19.6 lb of CO₂ per gallon of gasoline:</b> <a href="https://www.epa.gov/greenvehicles/greenhouse-gas-emissions-typical-passenger-vehicle" target="_blank" rel="noopener">U.S. EPA, “Greenhouse Gas Emissions from a Typical Passenger Vehicle”</a></li>
+      <li><b>1912: the newspaper warning about coal:</b> <a href="https://thespinoff.co.nz/science/04-08-2022/the-new-zealand-newspaper-climate-report-making-waves-110-years-later" target="_blank" rel="noopener">The Spinoff, “The New Zealand newspaper climate report making waves 110 years later” (about the Rodney & Otamatea Times, 14 August 1912, on Papers Past)</a></li>
+      <li><b>1938: Callendar links CO₂ and warming:</b> <a href="https://doi.org/10.1002/qj.49706427503" target="_blank" rel="noopener">G. S. Callendar, “The artificial production of carbon dioxide and its influence on temperature”, Quarterly Journal of the Royal Meteorological Society (1938)</a></li>
+      <li><b>1950: the Great Acceleration:</b> <a href="https://doi.org/10.1177/2053019614564785" target="_blank" rel="noopener">Steffen et al., “The trajectory of the Anthropocene: The Great Acceleration”, The Anthropocene Review (2015)</a></li>
+      <li><b>1958: the Keeling Curve begins at Mauna Loa:</b> <a href="https://keelingcurve.ucsd.edu/" target="_blank" rel="noopener">Scripps Institution of Oceanography, “The Keeling Curve”</a></li>
+      <li><b>1962: Silent Spring and the environmental movement:</b> <a href="https://www.acs.org/education/whatischemistry/landmarks/rachel-carson-silent-spring.html" target="_blank" rel="noopener">American Chemical Society, “Legacy of Rachel Carson's Silent Spring”</a></li>
+      <li><b>1970: the first Earth Day and the EPA:</b> <a href="https://www.epa.gov/archive/epa/aboutepa/guardian-origins-epa.html" target="_blank" rel="noopener">U.S. EPA, “The Guardian: Origins of the EPA”</a></li>
+      <li><b>1979: the Charney Report's 3 °C ± 1.5 °C estimate:</b> <a href="https://nap.nationalacademies.org/catalog/12181" target="_blank" rel="noopener">National Research Council, “Carbon Dioxide and Climate: A Scientific Assessment” (1979)</a></li>
+      <li><b>1988: Hansen tells the Senate warming is here:</b> <a href="https://pulitzercenter.org/sites/default/files/june_23_1988_senate_hearing_1.pdf" target="_blank" rel="noopener">Pulitzer Center, transcript of James Hansen's testimony to the U.S. Senate, 23 June 1988 (PDF)</a></li>
+      <li><b>1997: Kyoto's binding targets:</b> <a href="https://unfccc.int/kyoto_protocol" target="_blank" rel="noopener">UNFCCC, “What is the Kyoto Protocol?”</a></li>
+      <li><b>1998: El Niño adds a warm spike:</b> <a href="https://science.nasa.gov/earth/explore/the-ocean-and-climate-change" target="_blank" rel="noopener">NASA Science, “The Ocean and Climate Change”</a></li>
+      <li><b>2003: heatwaves getting hotter and more frequent:</b> <a href="https://science.nasa.gov/climate-change/effects/" target="_blank" rel="noopener">NASA Science, “The Effects of Climate Change”</a></li>
+      <li><b>2015: the Paris Agreement and 1.5 °C:</b> <a href="https://unfccc.int/most-requested/key-aspects-of-the-paris-agreement" target="_blank" rel="noopener">UNFCCC, “Key aspects of the Paris Agreement”</a></li>
+      <li><b>2016 and 2023: record warm years; 2023 the warmest:</b> <a href="https://www.nasa.gov/news-release/nasa-analysis-confirms-2023-as-warmest-year-on-record/" target="_blank" rel="noopener">NASA, “NASA Analysis Confirms 2023 as Warmest Year on Record” (2024)</a></li>
+      <li><b>2019: about 3 billion birds lost since 1970:</b> <a href="https://pubmed.ncbi.nlm.nih.gov/31604313/" target="_blank" rel="noopener">Rosenberg et al., “Decline of the North American avifauna”, Science (2019)</a></li>
+      <li><b>2023: CO₂ was about 280 ppm before the Industrial Revolution:</b> <a href="https://www.climate.gov/news-features/understanding-climate/climate-change-atmospheric-carbon-dioxide" target="_blank" rel="noopener">NOAA Climate.gov, “Climate Change: Atmospheric Carbon Dioxide”</a></li>
+    </ul>
+    <h3>Quick facts</h3>
+    <ul>
+      <li><b>The Arctic is warming much faster than the planet:</b> <a href="https://arctic.noaa.gov/?p=11285" target="_blank" rel="noopener">NOAA, “Arctic Report Card: Update for 2025”</a></li>
+      <li><b>Oceans have absorbed about 90% of the extra heat:</b> <a href="https://science.nasa.gov/earth/explore/earth-indicators/ocean-warming/" target="_blank" rel="noopener">NASA Science, “Ocean Warming” Earth indicator</a></li>
+      <li><b>Heavier downpours, and birds shifting toward the poles and uphill:</b> <a href="https://science.nasa.gov/climate-change/effects/" target="_blank" rel="noopener">NASA Science, “The Effects of Climate Change”</a></li>
+      <li><b>Spring arriving before the insects baby birds eat:</b> <a href="https://www.audubon.org/magazine/matter-timing-can-birds-keep-earlier-and-earlier-springs" target="_blank" rel="noopener">Audubon, “A Matter of Timing: Can Birds Keep Up With Earlier and Earlier Springs?”</a></li>
+      <li><b>Each SVS 5207 frame averages 24 months:</b> <a href="https://svs.gsfc.nasa.gov/5207/" target="_blank" rel="noopener">NASA SVS 5207</a></li>
+      <li><b>1.5 °C is far less damaging than 2 °C:</b> <a href="https://www.ipcc.ch/sr15/" target="_blank" rel="noopener">IPCC, “Special Report: Global Warming of 1.5 °C” (2018)</a></li>
+    </ul>
+    <h3>The ending</h3>
+    <ul>
+      <li><b>Warming of about 1.1 °C, seas up about 8 inches since 1880, Arctic summers nearly ice-free before 2050:</b> <a href="https://science.nasa.gov/climate-change/effects/" target="_blank" rel="noopener">NASA Science, “The Effects of Climate Change”</a></li>
+    </ul>
+    <h3>Sounds and music</h3>
+    <ul>
+      <li>Every sound in The Warming Song (birds, wind, rivers, traffic, sirens, factories, music and the whoosh) is <b>generated live by this project's own code</b> using the Web Audio API, an open web standard built into every browser (<a href="https://www.w3.org/TR/webaudio/" target="_blank" rel="noopener">W3C Web Audio API</a>). No recordings, samples or music by anyone else are used, so there is nothing copyrighted to license.</li>
+      <li>The narrator is an open-source voice: <a href="https://github.com/rhasspy/piper" target="_blank" rel="noopener">Piper text-to-speech</a> (MIT licence) with the “Norman” voice, which was trained on public-domain <a href="https://librivox.org" target="_blank" rel="noopener">LibriVox</a> recordings (<a href="https://huggingface.co/rhasspy/piper-voices/blob/main/en/en_US/norman/medium/MODEL_CARD" target="_blank" rel="noopener">voice details</a>). It runs inside your browser using <a href="https://github.com/microsoft/onnxruntime" target="_blank" rel="noopener">ONNX Runtime Web</a> (MIT), the <a href="https://github.com/Mintplex-Labs/piper-tts-web" target="_blank" rel="noopener">piper-tts-web</a> library (MIT) and the <a href="https://github.com/espeak-ng/espeak-ng" target="_blank" rel="noopener">eSpeak NG</a> pronouncer (GPL-3.0). If the voice can't download, your browser's built-in voice is used instead.</li>
+    </ul>
+    <h3>Fonts</h3>
+    <ul>
+      <li>Fraunces, Inter and IBM Plex Mono, all free under the SIL Open Font License, served by <a href="https://fonts.google.com/" target="_blank" rel="noopener">Google Fonts</a>.</li>
+    </ul>
+    <p class="small">Original code, sounds and story text by the team. Built for NASA Space Apps Challenge 2026, “The Earth Information Jukebox”. Not an official NASA product.</p>
+  </section>
+</main>
+<script src="geo-data.js"></script>
+<script src="fallback-data.js"></script>
+<script src="story.js"></script>
+<script type="module" src="voice.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
