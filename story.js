@@ -55,7 +55,7 @@ window.STORY = [
     fact: "Carbon dioxide levels this year are about {CO2}. Before the industrial revolution, it was 280 ppm." },
 ];
 
-// Short "did you know" lines shown between chapters (picked automatically, never repeated in a row)
+
 window.QUICK = [
   "The colors on the map are from NASA SVS 5207. Blue means it's cooler, white is normal, and red is warmer.",
   "The Arctic is warming a lot quicker than the rest of the earth.",
